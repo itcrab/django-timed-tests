@@ -80,18 +80,8 @@ class TimedTestRunnerTestCase(TestCase):
             self.assertLessEqual(duration, last_duration)
             last_duration = duration
 
-    def _check_and_clear_output_file_report_message(self, stream_text, file_report):
-        if file_report:
-            file_report_output = f'\nGenerated the timing tests report file: {file_report}\n'
-            self.assertIn(file_report_output, stream_text)
-
-            stream_text = stream_text.replace(file_report_output, '')
-
-        return stream_text
-
-    def _test_short_formatting(self, stream, file_report):
+    def _test_short_formatting(self, stream):
         stream_text = stream.getvalue()
-        stream_text = self._check_and_clear_output_file_report_message(stream_text, file_report)
 
         tables = extract_tables(stream_text)
 
@@ -102,9 +92,8 @@ class TimedTestRunnerTestCase(TestCase):
 
         self.assertEqual(len(rows), NUM_SLOWEST_TESTS)
 
-    def _test_full_formatting(self, stream, file_report):
+    def _test_full_formatting(self, stream):
         stream_text = stream.getvalue()
-        stream_text = self._check_and_clear_output_file_report_message(stream_text, file_report)
 
         tables = extract_tables(stream_text)
 
@@ -121,6 +110,7 @@ class TimedTestRunnerTestCase(TestCase):
     def _test_run(self, parallel=1, full_report=False, debug_sql=False, pdb=False, file_report=''):
         fake_time = FakeTime()
         output_stream = StringIO()
+        file_stream = StringIO()
 
         django_test_runner = TimedTestRunner(parallel=parallel, debug_sql=debug_sql, pdb=pdb)
         suite = django_test_runner.build_suite([EXAMPLE_TEST_SUITE_PATH])
@@ -137,10 +127,22 @@ class TimedTestRunnerTestCase(TestCase):
             expected_duration = int(test._testMethodName.split("_")[-1])
             self.assertEqual(expected_duration, duration)
 
+        if file_report:
+            file_report_output = f'\nGenerated the timing tests report file: {file_report}\n'
+            self.assertIn(file_report_output, output_stream.getvalue())
+            output_stream.truncate(output_stream.tell() - len(file_report_output))
+
+            with open(file_report, 'r', encoding='utf-8') as f:
+                file_stream.write(f.read())
+
         if full_report:
-            self._test_full_formatting(output_stream, file_report)
+            self._test_full_formatting(output_stream)
+            if file_report:  # check file report data
+                self._test_full_formatting(file_stream)
         else:
-            self._test_short_formatting(output_stream, file_report)
+            self._test_short_formatting(output_stream)
+            if file_report:  # check file report data
+                self._test_short_formatting(file_stream)
 
         return result
 
