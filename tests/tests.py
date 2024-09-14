@@ -2,6 +2,7 @@ import multiprocessing
 import os
 import sys
 from io import StringIO
+from tempfile import TemporaryFile
 from unittest.mock import patch
 
 import django
@@ -24,11 +25,10 @@ class FakeTime:
         self._time += t
 
 
-def extract_tables(stream):
+def extract_tables(stream_text):
     return_tables = []
-    text = stream.getvalue()
-    tables_start = text.find("OK")
-    tables_text = text[tables_start + 3 :]  # Need to account for lenght of 'OK\n'
+    tables_start = stream_text.find("OK")
+    tables_text = stream_text[tables_start + 3 :]  # Need to account for lenght of 'OK\n'
     tables = tables_text.split("\n\n")
 
     for table in tables:
@@ -74,8 +74,20 @@ class TimedTestRunnerTestCase(TestCase):
             self.assertLessEqual(duration, last_duration)
             last_duration = duration
 
-    def _test_short_formatting(self, stream):
-        tables = extract_tables(stream)
+    def _check_and_clear_output_file_report_message(self, stream_text, file_report):
+        if file_report:
+            file_report_output = f'\nGenerated the timing tests report file: {file_report}\n'
+            self.assertIn(file_report_output, stream_text)
+
+            stream_text = stream_text.replace(file_report_output, '')
+
+        return stream_text
+
+    def _test_short_formatting(self, stream, file_report):
+        stream_text = stream.getvalue()
+        stream_text = self._check_and_clear_output_file_report_message(stream_text, file_report)
+
+        tables = extract_tables(stream_text)
 
         self.assertEqual(len(tables), 1)
 
@@ -84,8 +96,11 @@ class TimedTestRunnerTestCase(TestCase):
 
         self.assertEqual(len(rows), NUM_SLOWEST_TESTS)
 
-    def _test_full_formatting(self, stream):
-        tables = extract_tables(stream)
+    def _test_full_formatting(self, stream, file_report):
+        stream_text = stream.getvalue()
+        stream_text = self._check_and_clear_output_file_report_message(stream_text, file_report)
+
+        tables = extract_tables(stream_text)
 
         for i, rows in enumerate(tables):
             if i == 0:  # module table
@@ -97,14 +112,14 @@ class TimedTestRunnerTestCase(TestCase):
 
             self._test_table(rows)
 
-    def _test_run(self, parallel=1, full_report=False, debug_sql=False, pdb=False):
+    def _test_run(self, parallel=1, full_report=False, debug_sql=False, pdb=False, file_report=''):
         fake_time = FakeTime()
         output_stream = StringIO()
 
         django_test_runner = TimedTestRunner(parallel=parallel, debug_sql=debug_sql, pdb=pdb)
         suite = django_test_runner.build_suite([EXAMPLE_TEST_SUITE_PATH])
         runner_kwargs = django_test_runner.get_test_runner_kwargs()
-        runner_kwargs.update(stream=output_stream, full_report=full_report)
+        runner_kwargs.update(stream=output_stream, full_report=full_report, file_report=file_report)
         test_runner = django_test_runner.test_runner(**runner_kwargs)
 
         with patch("django_timed_tests.runner.time", new=fake_time), patch(
@@ -117,20 +132,32 @@ class TimedTestRunnerTestCase(TestCase):
             self.assertEqual(expected_duration, duration)
 
         if full_report:
-            self._test_full_formatting(output_stream)
+            self._test_full_formatting(output_stream, file_report)
         else:
-            self._test_short_formatting(output_stream)
+            self._test_short_formatting(output_stream, file_report)
 
         return result
 
     def test_sequential_short_output(self):
         self._test_run()
 
+    def test_sequential_short_output_file_report(self):
+        with TemporaryFile() as f:
+            file_name = f.name
+
+        self._test_run(file_report=file_name)
+
     def test_parallel_short_output(self):
         self._test_run(parallel=3)
 
     def test_sequential_full_output(self):
         self._test_run(full_report=True)
+
+    def test_sequential_full_output_file_report(self):
+        with TemporaryFile() as f:
+            file_name = f.name
+
+        self._test_run(full_report=True, file_report=file_name)
 
     def test_parallel_full_output(self):
         self._test_run(parallel=3, full_report=True)
