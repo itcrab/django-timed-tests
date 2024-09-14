@@ -155,7 +155,7 @@ class TimedTestRunnerTestCase(TestCase):
 
     def test_sequential_full_output_file_report(self):
         with TemporaryFile() as f:
-            file_name = f.name
+            file_name = f'{f.name}.log'
 
         self._test_run(full_report=True, file_report=file_name)
 
