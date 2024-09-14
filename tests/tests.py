@@ -168,6 +168,12 @@ class TimedTestRunnerTestCase(TestCase):
     def test_parallel_full_output(self):
         self._test_run(parallel=3, full_report=True)
 
+    def test_parallel_full_output_file_report(self):
+        with TemporaryFile() as f:
+            file_name = f'{f.name}.log'
+
+        self._test_run(parallel=3, full_report=True, file_report=file_name)
+
     def test_debug_sql(self):
         debug_sql_result = self._test_run(debug_sql=True)
 
