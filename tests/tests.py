@@ -150,6 +150,12 @@ class TimedTestRunnerTestCase(TestCase):
     def test_parallel_short_output(self):
         self._test_run(parallel=3)
 
+    def test_parallel_short_output_file_report(self):
+        with TemporaryFile() as f:
+            file_name = f'{f.name}.log'
+
+        self._test_run(parallel=3, file_report=file_name)
+
     def test_sequential_full_output(self):
         self._test_run(full_report=True)
 
