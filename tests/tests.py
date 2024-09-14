@@ -53,7 +53,13 @@ class TimedTestRunnerTestCase(TestCase):
             )
             sys.exit(1)
 
-        multiprocessing.set_start_method("fork")
+        try:
+            multiprocessing.set_start_method("fork")
+        except ValueError as e:
+            if sys.platform == 'win32' and str(e) == "cannot find context for 'fork'":  # Windows 10/11
+                multiprocessing.set_start_method("spawn")
+            else:
+                raise e
 
     def _test_table(self, rows):
         """Every name_X method/class/module should last X seconds, rows should be ordered by descending duration."""
