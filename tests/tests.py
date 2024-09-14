@@ -39,6 +39,12 @@ def extract_tables(stream_text):
     return return_tables
 
 
+def get_temp_file_path():
+    with TemporaryFile() as f:
+        file_name = f'{f.name}.log'
+    return file_name
+
+
 class TimedTestRunnerTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -142,37 +148,25 @@ class TimedTestRunnerTestCase(TestCase):
         self._test_run()
 
     def test_sequential_short_output_file_report(self):
-        with TemporaryFile() as f:
-            file_name = f'{f.name}.log'
-
-        self._test_run(file_report=file_name)
+        self._test_run(file_report=get_temp_file_path())
 
     def test_parallel_short_output(self):
         self._test_run(parallel=3)
 
     def test_parallel_short_output_file_report(self):
-        with TemporaryFile() as f:
-            file_name = f'{f.name}.log'
-
-        self._test_run(parallel=3, file_report=file_name)
+        self._test_run(parallel=3, file_report=get_temp_file_path())
 
     def test_sequential_full_output(self):
         self._test_run(full_report=True)
 
     def test_sequential_full_output_file_report(self):
-        with TemporaryFile() as f:
-            file_name = f'{f.name}.log'
-
-        self._test_run(full_report=True, file_report=file_name)
+        self._test_run(full_report=True, file_report=get_temp_file_path())
 
     def test_parallel_full_output(self):
         self._test_run(parallel=3, full_report=True)
 
     def test_parallel_full_output_file_report(self):
-        with TemporaryFile() as f:
-            file_name = f'{f.name}.log'
-
-        self._test_run(parallel=3, full_report=True, file_report=file_name)
+        self._test_run(parallel=3, full_report=True, file_report=get_temp_file_path())
 
     def test_debug_sql(self):
         debug_sql_result = self._test_run(debug_sql=True)
