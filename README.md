@@ -96,7 +96,7 @@ OK
 ### File report
 Generated timing tests report can be written into file (like for investigation on CI builds).
 
-When you run `manage.py test --full-report --file-report=./tests-artefacts/tests_timings.log` (can used without `--full-report`) report you'll see will be written into file.
+When you run `manage.py test --full-report --file-report=./tests-artifacts/tests_timings.log` (can used without `--full-report`) report you'll see will be written into file.
 ```
 ..............
 ----------------------------------------------------------------------
@@ -128,7 +128,7 @@ OK
 | tests.examples.DummyTestCase1.test_dummy_0 |    0.00022184  |
 | tests.examples.DummyTestCase3.test_dummy_0 |    0.000178818 |
 
-Generated the timing tests report file: ./tests-artefacts/tests_timings.log
+Generated the timing tests report file: ./tests-artifacts/tests_timings.log
 ```
 
 ### Combining with your own test runner
