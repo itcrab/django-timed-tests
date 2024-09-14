@@ -26,4 +26,5 @@ jobs:
         pip install -r test_requirements.txt
     - name: Run Tests
       run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
         python runtests.py
