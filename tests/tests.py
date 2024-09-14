@@ -42,6 +42,7 @@ def extract_tables(stream_text):
 def get_temp_file_path():
     with TemporaryFile() as f:
         file_name = f'{f.name}.log'
+
     return file_name
 
 
