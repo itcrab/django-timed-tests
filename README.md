@@ -93,6 +93,44 @@ OK
 | tests.examples.DummyTestCase3.test_dummy_0 |    0.000178818 |
 ```
 
+### File report
+Generated timing tests report can be written into file (like for investigation on CI builds).
+
+When you run `manage.py test --full-report --file-report=./tests-artefacts/tests_timings.log` (can used without `--full-report`) report you'll see will be written into file.
+```
+..............
+----------------------------------------------------------------------
+Ran 12 tests in 6.157s
+
+OK
+| Module         |   Duration (s) |
+|----------------|----------------|
+| tests.examples |        18.0088 |
+
+| Class                         |   Duration (s) |
+|-------------------------------|----------------|
+| tests.examples.DummyTestCase1 |        6.00306 |
+| tests.examples.DummyTestCase2 |        6.00299 |
+| tests.examples.DummyTestCase3 |        6.00273 |
+
+| Test                                       |   Duration (s) |
+|--------------------------------------------|----------------|
+| tests.examples.DummyTestCase2.test_dummy_3 |    3.00136     |
+| tests.examples.DummyTestCase3.test_dummy_3 |    3.00136     |
+| tests.examples.DummyTestCase1.test_dummy_3 |    3.00126     |
+| tests.examples.DummyTestCase3.test_dummy_2 |    2.00039     |
+| tests.examples.DummyTestCase1.test_dummy_2 |    2.00031     |
+| tests.examples.DummyTestCase2.test_dummy_2 |    2.00026     |
+| tests.examples.DummyTestCase1.test_dummy_1 |    1.00128     |
+| tests.examples.DummyTestCase2.test_dummy_1 |    1.00112     |
+| tests.examples.DummyTestCase3.test_dummy_1 |    1.0008      |
+| tests.examples.DummyTestCase2.test_dummy_0 |    0.000246959 |
+| tests.examples.DummyTestCase1.test_dummy_0 |    0.00022184  |
+| tests.examples.DummyTestCase3.test_dummy_0 |    0.000178818 |
+
+Generated the timing tests report file: ./tests-artefacts/tests_timings.log
+```
+
 ### Combining with your own test runner
 `TimedTestRunner` tries to be minimally invasive, and integrating it into your custom test runner shouldn't be too complex.
 

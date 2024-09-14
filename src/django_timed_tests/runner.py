@@ -74,10 +74,11 @@ class TimedPDBDebugResult(PDBDebugResult, TimedTextTestResult):
 class TimedTextTestRunner(TextTestRunner):
     resultclass = TimedTextTestResult
 
-    def __init__(self, full_report=False, **kwargs):
+    def __init__(self, full_report=False, file_report='', **kwargs):
         super().__init__(**kwargs)
 
         self._full_report = full_report
+        self._file_report = file_report
 
     def run(self, test):
         result = super().run(test)
@@ -86,6 +87,15 @@ class TimedTextTestRunner(TextTestRunner):
 
         self.stream.write(report)
         self.stream.write("\n")
+
+        if self._file_report:
+            with open(self._file_report, 'w', encoding='utf-8') as f:
+                f.write(report)
+
+            self.stream.write("\n")
+            self.stream.write(f"Generated the timing tests report file: {self._file_report}")
+            self.stream.write("\n")
+
         self.stream.flush()
 
         return result
@@ -95,10 +105,11 @@ class TimedTestRunner(DiscoverRunner):
     test_runner = TimedTextTestRunner
     parallel_test_suite = TimedParallelTestSuite
 
-    def __init__(self, full_report=False, **kwargs):
+    def __init__(self, full_report=False, file_report='', **kwargs):
         super().__init__(**kwargs)
 
         self._full_report = full_report
+        self._file_report = file_report
 
     @classmethod
     def add_arguments(cls, parser):
@@ -108,6 +119,12 @@ class TimedTestRunner(DiscoverRunner):
             action="store_true",
             dest="full_report",
             help="Generate a module, class and method duration breakdown",
+        )
+        parser.add_argument(
+            "--file-report",
+            action="store",
+            dest="file_report",
+            help="Generate file with timing tests report data",
         )
 
     def get_resultclass(self):
@@ -119,6 +136,7 @@ class TimedTestRunner(DiscoverRunner):
     def get_test_runner_kwargs(self):
         kwargs = super().get_test_runner_kwargs()
         kwargs["full_report"] = self._full_report
+        kwargs["file_report"] = self._file_report
 
         return kwargs
 
